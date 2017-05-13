@@ -1,0 +1,19 @@
+{
+  "name": "stand-up-comedy-server",
+  "version": "1.0.0",
+  "author": "FTAndy",
+  "license": "MIT",
+  "scripts": {
+    "dev-server": "NODE_ENV=development ./node_modules/nodemon/bin/nodemon.js --harmony-async-await server.js"
+  },
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "koa": "^2.2.0",
+    "koa-router": "^7.1.1",
+    "mongoose": "^4.9.8",
+    "node-fetch": "^1.6.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  }
+}
