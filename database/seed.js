@@ -34,9 +34,20 @@ const comedians = [
 function fetchWikiPromise() {
   return comedians.map((comedian) => {
     return comedian.name.replace(' ', '_')
-  }).map((name) => {
+  })
+  .map((name) => {
+    console.log(`fetching ${name} detail from wiki`)
     return fetch(`https://en.wikipedia.org/wiki/${name}`)
     .then(res => res.text())
+  })
+}
+
+function fetchSpecialWiki(url) {
+  return fetch(url)
+  .then((res) => res.text())
+  .then((specialData) => {
+    const $ = cheerio.load(specialData)
+    return $.html($('#mw-content-text').children('p').first())
   })
 }
 
@@ -56,8 +67,9 @@ function comediansDataPromise() {
 }
 
 Promise.all(fetchWikiPromise())
-.then((comedianWiki) => {
-  comedianWiki.forEach((wikiData, index) => {
+.then(async (comedianWiki) => {
+  for (let wikiData of comedianWiki) {
+    const index = comedianWiki.indexOf(wikiData)
     const comedian = comedians[index]
     const $ = cheerio.load(wikiData)
     const description = $.html($('.vcard').nextUntil('#toc').not('.vcard'))
@@ -67,24 +79,31 @@ Promise.all(fetchWikiPromise())
       // https://en.wikipedia.org/wiki/Louis_C.K. style
       case 'ul':
         specialsData = $(specialsData).find('li').toArray()
-        specialsData.forEach((li) => {
+        for (let li of specialsData) {
           const year = li.children[0].data.replace(':', '')
+          const href = li.children[1].children[0]
+          let specialDescription
+          if (href.name === 'a') {
+            const specialUrl = `https://en.wikipedia.org${href.attribs.href}`
+            specialDescription = await fetchSpecialWiki(specialUrl)
+          } else {
+            specialDescription = 'no description'
+          }
           let specialName = li.children[1].children[0].data
           if (!specialName) {
             specialName = li.children[1].children[0].children[0].data
           }
-          console.log(year, specialName)
           const special = {
             year,
             name: specialName,
+            description: specialDescription,
             pictureUrls: [
               'http://1.images.comedycentral.com/images/ccstandup/massives/CCSU_LouisCK_1920x540.jpg?quality=0.85&width=1556&height=540&crop=true'
             ],
             star: 10
           }
           comedian.specials ? comedian.specials.push(special) : comedian.specials = []
-        })
-        console.log(comedian)
+        }
         break;
       // https://en.wikipedia.org/wiki/George_Carlin style
       case 'dl':
@@ -98,11 +117,13 @@ Promise.all(fetchWikiPromise())
 
     }
     comedian.description = description
-  })
+  }
   return Promise.all(comediansDataPromise())
 })
 .then((datas) => {
-  console.log(datas, 'fuck');
+  // console.log(datas, 'fuck');
+  console.log('fetch finish')
+  process.exit()
 })
 .catch((err) => {
   console.error(err);

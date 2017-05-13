@@ -27,6 +27,7 @@ const ComedianSchema = new Schema({
       type: String,
       required: true
     },
+    description: String,
     pictureUrls: [String],
     playAddress: [String],
     date: Number,

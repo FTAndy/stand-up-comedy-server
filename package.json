@@ -4,6 +4,7 @@
   "author": "FTAndy",
   "license": "MIT",
   "scripts": {
+    "seed": "node --harmony-async-await database/seed.js",
     "dev-server": "NODE_ENV=development ./node_modules/nodemon/bin/nodemon.js --harmony-async-await server.js"
   },
   "dependencies": {
