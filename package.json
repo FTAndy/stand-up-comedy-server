@@ -4,17 +4,22 @@
   "author": "FTAndy",
   "license": "MIT",
   "scripts": {
-    "seed": "node --harmony-async-await database/seed.js",
-    "dev-server": "NODE_ENV=development ./node_modules/nodemon/bin/nodemon.js --harmony-async-await server.js"
+    "seed": "NODE_ENV=development node --harmony-async-await database/seed.js",
+    "fetch-imges-test": "NODE_ENV=development node ./database/fetch-images-test.js",
+    "dev-server": "NODE_ENV=development ./node_modules/nodemon/bin/nodemon.js --harmony-async-await server.js",
+    "pro-server": "NODE_ENV=production pm2 start server.js --name='stand-up-comedy-server' --node-args='--harmony-async-await'"
   },
   "dependencies": {
     "cheerio": "^0.22.0",
     "koa": "^2.2.0",
     "koa-router": "^7.1.1",
     "mongoose": "^4.9.8",
-    "node-fetch": "^1.6.3"
+    "node-fetch": "^1.6.3",
+    "request-promise": "^4.2.1"
   },
   "devDependencies": {
+    "http-proxy": "^1.16.2",
+    "nightmare": "^2.10.0",
     "nodemon": "^1.11.0"
   }
 }

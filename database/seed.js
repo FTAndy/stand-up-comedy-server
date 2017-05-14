@@ -1,6 +1,7 @@
 const db = require('./db.js');
 const cheerio = require('cheerio')
 const fetch = require("node-fetch");
+const googleRequest = require('./fetch-imges.js')
 
 const comedians = [
   {
@@ -8,27 +9,19 @@ const comedians = [
     website: 'https://louisck.net/',
     avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/Louis-ck.jpg",
     country: 'USA',
-    // specials: [{
-    //   name: 'Hilarious',
-    //   pictureUrls: [
-    //     'http://1.images.comedycentral.com/images/ccstandup/massives/CCSU_LouisCK_1920x540.jpg?quality=0.85&width=1556&height=540&crop=true'
-    //   ],
-    //   date: new Date(2013, 1, 1),
-    //   star: 10
-    // }]
   },
-  {
-    name: 'George Carlin',
-    website: 'https://georgecarlin.com/',
-    country: 'USA',
-    avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/532f094553b367095a1cfad874b4ff2f.jpg",
-  },
-  {
-    name: 'Doug Stanhope',
-    website: 'https://www.dougstanhope.com',
-    country: 'USA',
-    avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/httpbrasssolutions2-ru.jpg",
-  }
+  // {
+  //   name: 'George Carlin',
+  //   website: 'https://georgecarlin.com/',
+  //   country: 'USA',
+  //   avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/532f094553b367095a1cfad874b4ff2f.jpg",
+  // },
+  // {
+  //   name: 'Doug Stanhope',
+  //   website: 'https://www.dougstanhope.com',
+  //   country: 'USA',
+  //   avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/httpbrasssolutions2-ru.jpg",
+  // }
 ]
 
 function fetchWikiPromise() {
@@ -47,6 +40,8 @@ function fetchSpecialWiki(url) {
   .then((res) => res.text())
   .then((specialData) => {
     const $ = cheerio.load(specialData)
+    // console.log($('#mw-content-text').children('p').first().find('sup').length)
+    // $('#mw-content-text').children('p').first().find('sup').remove()
     return $.html($('#mw-content-text').children('p').first())
   })
 }
@@ -72,6 +67,7 @@ Promise.all(fetchWikiPromise())
     const index = comedianWiki.indexOf(wikiData)
     const comedian = comedians[index]
     const $ = cheerio.load(wikiData)
+    $('.vcard').nextUntil('#toc').not('.vcard').find('sup').remove()
     const description = $.html($('.vcard').nextUntil('#toc').not('.vcard'))
     let specialsData = $('[id^="Discography"]').parent().next()
 
@@ -79,9 +75,11 @@ Promise.all(fetchWikiPromise())
       // https://en.wikipedia.org/wiki/Louis_C.K. style
       case 'ul':
         specialsData = $(specialsData).find('li').toArray()
-        for (let li of specialsData) {
+        await Promise.all(specialsData.map(async (li) => {
           const year = li.children[0].data.replace(':', '')
           const href = li.children[1].children[0]
+
+          // special description
           let specialDescription
           if (href.name === 'a') {
             const specialUrl = `https://en.wikipedia.org${href.attribs.href}`
@@ -89,21 +87,25 @@ Promise.all(fetchWikiPromise())
           } else {
             specialDescription = 'no description'
           }
+
+          // special name
           let specialName = li.children[1].children[0].data
           if (!specialName) {
             specialName = li.children[1].children[0].children[0].data
           }
+
+          // special images
+          const specialPictureUrls = await googleRequest(`${comedian.name} ${specialName}`)
+
           const special = {
             year,
             name: specialName,
             description: specialDescription,
-            pictureUrls: [
-              'http://1.images.comedycentral.com/images/ccstandup/massives/CCSU_LouisCK_1920x540.jpg?quality=0.85&width=1556&height=540&crop=true'
-            ],
+            pictureUrls: specialPictureUrls,
             star: 10
           }
           comedian.specials ? comedian.specials.push(special) : comedian.specials = []
-        }
+        }))
         break;
       // https://en.wikipedia.org/wiki/George_Carlin style
       case 'dl':
