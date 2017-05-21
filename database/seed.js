@@ -2,6 +2,8 @@ const db = require('./db.js');
 const cheerio = require('cheerio')
 const fetch = require("node-fetch");
 const googleRequest = require('./fetch-imges.js')
+const downloadFile = require('download-file')
+const uploadFile = require('./qiniu.js')
 
 const comedians = [
   {
@@ -96,6 +98,25 @@ Promise.all(fetchWikiPromise())
 
           // special images
           const specialPictureUrls = await googleRequest(`${comedian.name} ${specialName}`)
+
+          await Promise.all(specialPictureUrls.map((url, index) => {
+            if (index < 2) {
+              console.log(`download to local ${url}`)
+              return new Promise((resolve, reject) => {
+                downloadFile(url, {
+                  directory: "./tmp/",
+                  filename: `${index}.png`
+                }, function (err) {
+                  if (err) {
+                    reject()
+                  } else {
+                    console.log(`download to local ${url} successfully`)
+                    resolve()
+                  }
+                })
+              })
+            }
+          }))
 
           const special = {
             year,
