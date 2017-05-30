@@ -10,7 +10,9 @@
     "pro-server": "NODE_ENV=production pm2 start server.js --name='stand-up-comedy-server' --node-args='--harmony-async-await'"
   },
   "dependencies": {
+    "base64-img": "^1.0.3",
     "cheerio": "^0.22.0",
+    "download": "^6.2.0",
     "download-file": "^0.1.5",
     "koa": "^2.2.0",
     "koa-router": "^7.1.1",

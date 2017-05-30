@@ -18,11 +18,10 @@ module.exports = function uploadFile(localFilePath, uploadedFileName) {
     qiniu.io.putFile(token, key, localFilePath, extra, function(err, ret) {
       if(!err) {
         // 上传成功， 处理返回值
-        console.log(`upload successfully ${ret.key}`)
-        resolve()
+        resolve(`http://olrzfbqqd.bkt.clouddn.com/${ret.key}`)
       } else {
         // 上传失败， 处理返回代码
-        console.log(`upload failed ${ret.key}`)
+        console.log(`upload failed ${JSON.stringify(err)}`, ret)
         reject()
       }
     });

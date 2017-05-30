@@ -1,5 +1,7 @@
 const Nightmare = require('nightmare');
 const cheerio = require('cheerio')
+const fs = require('fs')
+const base64Img = require('base64-img')
 
 let options
 
@@ -22,7 +24,7 @@ switch (process.env.NODE_ENV) {
 
 module.exports = function googleRequest(keyword) {
   const proxyNightmare = Nightmare(Object.assign({
-    // show: true
+    // show: true,
     waitTimeout: 60000
   }, options));
 
@@ -36,12 +38,28 @@ module.exports = function googleRequest(keyword) {
       return document.querySelector('#rg_s').innerHTML
     })
     .end()
-    .then((res) => {
-      console.log('get images')
+    .then(async (res) => {
       const $ = cheerio.load(res)
-      return $('.rg_di').slice(5, 8).toArray().map((div) => {
-        // console.log(div.children[0].children[0].attribs.src)
-        return div.children[0].children[0].attribs.src
-      })
+      const imagesBase64 = $('.rg_di').slice(5, 8).toArray()
+      return Promise.all(imagesBase64.map((imageBase64, index) => {
+        return new Promise((resolve, reject) => {
+          const base64Data = imageBase64.children[0].children[0].attribs.src
+          try {
+            base64Img.img(base64Data, `tmp`, `/${keyword}-${index}`, function (err, filepath) {
+              if (err) {
+                resolve('')
+                // reject()
+              } else {
+                resolve({
+                  path: filepath,
+                  name: `${keyword}-${index}.jpg`
+                })
+              }
+            })
+          } catch (e) {
+            resolve('')
+          }
+        })
+      }))
     })
 };
