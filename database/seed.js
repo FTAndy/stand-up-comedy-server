@@ -5,18 +5,18 @@ const googleRequest = require('./fetch-imges.js')
 const uploadFile = require('./qiniu.js')
 
 const comedians = [
-  {
-    name: 'Louis C.K.',
-    website: 'https://louisck.net/',
-    avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/Louis-ck.jpg",
-    country: 'USA',
-  },
   // {
-  //   name: 'George Carlin',
-  //   website: 'https://georgecarlin.com/',
+  //   name: 'Louis C.K.',
+  //   website: 'https://louisck.net/',
+  //   avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/Louis-ck.jpg",
   //   country: 'USA',
-  //   avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/532f094553b367095a1cfad874b4ff2f.jpg",
   // },
+  {
+    name: 'George Carlin',
+    website: 'https://georgecarlin.com/',
+    country: 'USA',
+    avatarUrl: "http://olrzfbqqd.bkt.clouddn.com/532f094553b367095a1cfad874b4ff2f.jpg",
+  },
   // {
   //   name: 'Doug Stanhope',
   //   website: 'https://www.dougstanhope.com',
@@ -41,8 +41,6 @@ function fetchSpecialWiki(url) {
   .then((res) => res.text())
   .then((specialData) => {
     const $ = cheerio.load(specialData)
-    // console.log($('#mw-content-text').children('p').first().find('sup').length)
-    // $('#mw-content-text').children('p').first().find('sup').remove()
     return $.html($('#mw-content-text').children('p').first())
   })
 }
@@ -70,9 +68,9 @@ Promise.all(fetchWikiPromise())
     const $ = cheerio.load(wikiData)
     $('.vcard').nextUntil('#toc').not('.vcard').find('sup').remove()
     const description = $.html($('.vcard').nextUntil('#toc').not('.vcard'))
-    let specialsData = $('[id^="Discography"]').parent().next()
+    let specialsData = $('[id^="Discography"]').parent().nextAll('ul')[0]
 
-    switch (specialsData[0].name) {
+    switch (specialsData.name) {
       // https://en.wikipedia.org/wiki/Louis_C.K. style
       case 'ul':
         specialsData = $(specialsData).find('li').toArray()
